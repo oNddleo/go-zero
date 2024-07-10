@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"reflect"
 	"sort"
 	"time"
 
@@ -66,7 +67,15 @@ func (ng *engine) addRoutes(r featuredRoutes) {
 func (ng *engine) appendAuthHandler(fr featuredRoutes, chn chain.Chain,
 	verifier func(chain.Chain) chain.Chain) chain.Chain {
 	if fr.jwt.enabled {
-		if len(fr.jwt.prevSecret) == 0 {
+		//check prevSecret whether exists,if only can be string or pointer
+		var hasPreSecret bool
+		if prevSecretStr, ok := fr.jwt.prevSecret.(string); ok && len(prevSecretStr) > 0 {
+			hasPreSecret = true
+		}
+		if reflect.ValueOf(fr.jwt.prevSecret).Kind() == reflect.Ptr && fr.jwt.prevSecret != nil {
+			hasPreSecret = true
+		}
+		if hasPreSecret {
 			chn = chn.Append(handler.Authorize(fr.jwt.secret,
 				handler.WithUnauthorizedCallback(ng.unauthorizedCallback)))
 		} else {

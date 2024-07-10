@@ -171,7 +171,7 @@ func WithCustomCors(middlewareFn func(header http.Header), notAllowedFn func(htt
 }
 
 // WithJwt returns a func to enable jwt authentication in given route.
-func WithJwt(secret string) RouteOption {
+func WithJwt(secret interface{}) RouteOption {
 	return func(r *featuredRoutes) {
 		validateSecret(secret)
 		r.jwt.enabled = true
@@ -316,9 +316,11 @@ func handleError(err error) {
 	panic(err)
 }
 
-func validateSecret(secret string) {
-	if len(secret) < 8 {
-		panic("secret's length can't be less than 8")
+func validateSecret(secret interface{}) {
+	if secretStr, ok := secret.(string); ok {
+		if len(secretStr) < 8 {
+			panic("secret's length can't be less than 8")
+		}
 	}
 }
 
